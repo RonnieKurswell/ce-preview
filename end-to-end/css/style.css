@@ -1,0 +1,718 @@
+/* End to End Immersive Experiences — Charles Elena
+   Palette and type inherited from the Charles Elena experience concept. */
+
+:root {
+  --ink: #000;
+  --ink-2: #070707;
+  --paper: #fff;
+
+  --aqua-dark: #193f44;
+  --aqua-medium: #3e94a6;
+  --aqua: #2de1fd;
+  --aqua-light: #c2f3fa;
+
+  --magenta-dark: #430560;
+  --magenta-medium: #a924b4;
+  --magenta: #fc31b8;
+  --magenta-light: #ffddf8;
+
+  --orange-dark: #2f1113;
+  --orange-medium: #b05027;
+  --orange: #ff7a00;
+  --orange-light: #ffddc3;
+
+  --line: #00000014;
+  --line-2: #0000002e;
+  --dim: #00000099;
+  --dimmer: #00000059;
+
+  --font: "Helvetica Neue", "Arial Nova", Arial, sans-serif;
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --nav-h: 68px;
+  --radius: 2px;
+
+  /* Every media pane on the site is this tall, so boxes stay the same size
+     from section to section. Column count is the only thing that varies. */
+  --media-h: 190px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  --accent: var(--magenta);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: auto; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--ink);
+  background: #f5f6fa;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+body.is-locked { overflow: hidden; }
+
+/* ---------- backdrop ---------- */
+
+#glow {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 85% 8%, var(--glow-a, #ffd9c2) 0%, transparent 55%),
+    radial-gradient(100% 80% at 95% 70%, var(--glow-b, #e8d4ff) 0%, transparent 60%),
+    radial-gradient(90% 70% at 10% 95%, #d9e6ff 0%, transparent 55%),
+    linear-gradient(180deg, #f7f8fc 0%, #f2f3f8 100%);
+  transition: background 1.2s var(--ease-out);
+}
+
+#gl {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+#gl canvas { display: block; width: 100%; height: 100%; }
+
+/* ---------- nav ---------- */
+
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: calc(var(--nav-h) + var(--safe-top));
+  padding: var(--safe-top) 28px 0;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  z-index: 40;
+  background: linear-gradient(180deg, #ffffffd9 0%, #ffffff00 100%);
+  backdrop-filter: blur(6px);
+}
+
+.nav-mark {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-decoration: none;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.nav-where {
+  margin: 0 0 0 auto;
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--dim);
+  transition: opacity .4s var(--ease-out);
+}
+
+.nav-progress {
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--line);
+}
+
+#nav-progress-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  transition: background .8s var(--ease-out);
+}
+
+/* ---------- rail ---------- */
+
+.rail {
+  position: fixed;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: flex-end;
+}
+
+.rail button {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 6px 0 6px 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--dimmer);
+  font: inherit;
+  font-size: 9px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.rail .dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  transition: all .4s var(--ease-out);
+  flex: none;
+}
+
+.rail .label {
+  opacity: 0;
+  transform: translateX(6px);
+  transition: all .4s var(--ease-out);
+  white-space: nowrap;
+  order: -1;
+}
+
+.rail button:hover { color: var(--ink); }
+.rail button:hover .label { opacity: 1; transform: none; }
+
+.rail button[aria-current="true"] { color: var(--ink); }
+.rail button[aria-current="true"] .dot {
+  width: 5px; height: 18px;
+  border-radius: 3px;
+  background: var(--accent);
+}
+.rail button[aria-current="true"] .label { opacity: 1; transform: none; }
+
+.scroll-hint {
+  position: fixed;
+  right: 30px;
+  bottom: calc(34px + var(--safe-bottom));
+  z-index: 40;
+  margin: 0;
+  font-size: 9px;
+  letter-spacing: .28em;
+  writing-mode: vertical-rl;
+  color: var(--dim);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: opacity .6s var(--ease-out);
+}
+
+.scroll-hint.is-hidden { opacity: 0; pointer-events: none; }
+
+/* ---------- stages ---------- */
+
+#main { position: relative; z-index: 10; }
+
+#scroll-space { height: 700vh; }
+
+.stage {
+  position: fixed;
+  inset: 0;
+  padding: calc(var(--nav-h) + 40px) 96px calc(56px + var(--safe-bottom));
+  display: flex;
+  z-index: 10;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .7s var(--ease-out), visibility .7s;
+}
+
+.stage.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Every stage sits in the same left column. Arrival and contact were once
+   centred, but centred text inside a column that is itself pushed off-centre
+   by the 3D cluster reads as a mistake rather than a choice. */
+.stage--left { align-items: center; justify-content: flex-start; }
+
+.stage-inner::before {
+  content: "";
+  position: absolute;
+  inset: -8% -12%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #ffffffde 0%, #ffffffb0 48%, transparent 100%);
+  filter: blur(14px);
+  pointer-events: none;
+}
+
+.stage-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.stage--left .stage-inner { max-width: min(58vw, 660px); }
+
+/* The stage column is a stretch flex column so tile grids fill it. Buttons
+   must not — they shrink to their label and sit on the same left edge. */
+.stage-inner > .btn,
+.stage-inner > .cta-row,
+.stage-inner > .marks { align-self: flex-start; }
+
+/* Every stage shares one column width so headlines, body copy and tile
+   grids all start and end on the same lines. */
+#arrival .stage-inner,
+#contact .stage-inner,
+#studio .stage-inner,
+#concept .stage-inner,
+#booths .stage-inner,
+#demos .stage-inner,
+#robotics .stage-inner,
+#motion .stage-inner { max-width: min(55vw, 720px); }
+
+/* reveal */
+.reveal, .strip, .grid, .demos, .panels {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity .8s var(--ease-out), transform .8s var(--ease-out);
+}
+
+.stage.is-active .reveal,
+.stage.is-active .strip,
+.stage.is-active .grid,
+.stage.is-active .demos,
+.stage.is-active .panels { opacity: 1; transform: none; }
+
+.stage.is-active .reveal:nth-child(2) { transition-delay: .06s; }
+.stage.is-active .reveal:nth-child(3) { transition-delay: .12s; }
+.stage.is-active .reveal:nth-child(4) { transition-delay: .18s; }
+.stage.is-active .strip,
+.stage.is-active .grid,
+.stage.is-active .demos,
+.stage.is-active .panels { transition-delay: .2s; }
+
+/* ---------- type ---------- */
+
+.eyebrow {
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.display {
+  margin: 0;
+  font-size: clamp(38px, 6.2vw, 88px);
+  line-height: .98;
+  letter-spacing: -.028em;
+  font-weight: 400;
+  max-width: 14ch;
+}
+
+/* The arrival title breaks by hand into two lines, and its standfirst is
+   meant to hold one. Both need room to do that, so the character caps that
+   govern the other stages are lifted here. */
+/* The arrival title breaks by hand into two lines and its standfirst holds
+   one, so the character caps that keep the other stages' measure in check
+   are lifted here — the column width does the work instead. */
+#arrival .display { max-width: none; font-size: clamp(32px, 4.1vw, 60px); }
+#arrival .lede { max-width: none; }
+
+/* No headline may run to three lines. The measure is the column rather than
+   a character cap, and the size is set so the longest headline still breaks
+   at two — see the robotics stage, which is the one that sets the limit. */
+.headline {
+  margin: 0;
+  font-size: clamp(21px, 2.7vw, 40px);
+  line-height: 1.08;
+  letter-spacing: -.022em;
+  font-weight: 400;
+  max-width: 30ch;
+  text-wrap: balance;
+}
+
+.lede {
+  margin: 0;
+  font-size: clamp(15px, 1.5vw, 20px);
+  line-height: 1.5;
+  color: var(--dim);
+  max-width: 42ch;
+}
+
+.body {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.62;
+  color: var(--dim);
+  max-width: 54ch;
+}
+
+
+/* Three short marks under the studio copy. Not a stat wall — just enough
+   to make the "one team" claim concrete before the offerings start. */
+.marks {
+  display: flex;
+  gap: 40px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.marks li { display: flex; flex-direction: column; gap: 2px; }
+
+.marks-n {
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: -.02em;
+  color: var(--accent);
+}
+
+.marks-l {
+  font-size: 11px;
+  letter-spacing: .06em;
+  color: var(--dim);
+}
+
+/* ---------- buttons ---------- */
+
+.btn {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  padding: 15px 34px;
+  border-radius: 999px;
+  text-decoration: none;
+  display: inline-block;
+  transition: transform .4s var(--ease-out), background .3s, color .3s, box-shadow .4s var(--ease-out);
+}
+
+.btn-primary {
+  background: var(--ink-2);
+  color: var(--paper);
+  box-shadow: 0 8px 24px #0000001f;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px #0003;
+}
+
+.btn-ghost {
+  background: none;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+}
+
+.btn-ghost:hover { box-shadow: inset 0 0 0 1px var(--ink); transform: translateY(-2px); }
+
+.cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+
+/* ---------- slots ---------- */
+
+.slot {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: #ffffff9c;
+  box-shadow: inset 0 0 0 1px var(--line-2);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  transition: transform .5s var(--ease-out), box-shadow .5s var(--ease-out);
+  backdrop-filter: blur(4px);
+}
+
+/* One hover treatment for every clickable box on the site — booth tiles,
+   concept frames, robotics shots, panel loops and demo cards alike. They
+   lift, take a hard outline, and draw an accent rule across the bottom.
+   Defined once so the sections cannot drift apart again. */
+.slot, .demo-btn { position: relative; overflow: hidden; }
+
+.slot::after, .demo-btn::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: 0;
+  height: 2px; width: 0;
+  background: var(--accent);
+  transition: width .5s var(--ease-out);
+  pointer-events: none;
+}
+
+.slot:hover, .demo-btn:hover,
+.slot:focus-visible, .demo-btn:focus-visible {
+  transform: translateY(-4px);
+  box-shadow: inset 0 0 0 1px var(--ink), 0 12px 28px #00000014;
+}
+
+.slot:hover::after, .demo-btn:hover::after,
+.slot:focus-visible::after, .demo-btn:focus-visible::after { width: 100%; }
+
+.slot:focus-visible, .demo-btn:focus-visible { outline: none; }
+
+/* Media pane and label block, shared by tiles and demo cards. The rule
+   between them is what separates the picture from its title. */
+.slot-media, .demo-media {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  height: var(--media-h);
+  flex: none;
+  background: #ffffff8a;
+  border-bottom: 1px solid var(--line);
+}
+
+.slot-media img, .slot-media video,
+.demo-media img, .demo-media video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.slot-media.is-empty, .demo-media.is-empty {
+  background: repeating-linear-gradient(135deg, #00000006 0 8px, transparent 8px 16px);
+}
+
+.slot-body, .demo-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px 11px;
+}
+
+.slot-kicker {
+  font-size: 8px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.slot-label {
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--dim);
+}
+
+/* layouts */
+
+/* One grid for every section. Three columns everywhere, so a tile is the
+   same size whichever stage you are on — sections with more entries wrap to
+   a second row rather than squeezing the row to fit. An earlier version let
+   each section choose its own column count, which made the boxes visibly
+   change size as you moved through the deck. */
+.strip--concept,
+.grid--booths,
+.grid--robotics,
+.panels,
+.demos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+  align-items: stretch;
+}
+
+/* Cards carry a preview image so they read as part of the same family as
+   the tile grids, rather than as three bare text boxes. */
+.demo-btn {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: var(--radius);
+  background: #ffffffb5;
+  box-shadow: inset 0 0 0 1px var(--line-2);
+  backdrop-filter: blur(6px);
+  text-align: left;
+  text-decoration: none;
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  transition: transform .5s var(--ease-out), box-shadow .5s var(--ease-out), background .3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.demo-body { gap: 4px; }
+
+.demo-btn .demo-name {
+  font-size: 15px;
+  letter-spacing: -.01em;
+}
+
+/* Held to two lines so a demo card stays about the height of a tile. The
+   full description is on the card's own screen anyway. */
+.demo-btn .demo-desc {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--dim);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.demo-btn .demo-go {
+  margin-top: 2px;
+  font-size: 9px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.demo-btn[data-stub="true"] .demo-go { color: var(--dimmer); }
+
+/* ---------- lightbox ---------- */
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: #0b0b0ceb;
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5vh 6vw;
+  opacity: 0;
+  transition: opacity .4s var(--ease-out);
+}
+
+.lightbox[hidden] { display: none; }
+.lightbox.is-open { opacity: 1; }
+
+.lightbox-figure {
+  margin: 0;
+  max-width: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+
+.lightbox-media {
+  max-width: 100%;
+  min-height: 0;
+  display: flex;
+}
+
+.lightbox-media img,
+.lightbox-media video {
+  max-width: 100%;
+  max-height: 78vh;
+  object-fit: contain;
+  border-radius: var(--radius);
+}
+
+.lightbox-media .lb-placeholder {
+  width: min(60vw, 720px);
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff8a;
+  font-size: 13px;
+  letter-spacing: .04em;
+  text-align: center;
+  padding: 40px;
+  box-shadow: inset 0 0 0 1px #ffffff2b;
+  background: repeating-linear-gradient(135deg, #ffffff08 0 10px, transparent 10px 20px);
+  border-radius: var(--radius);
+}
+
+.lightbox figcaption {
+  color: #ffffffbf;
+  font-size: 11px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 22px; right: 26px;
+  appearance: none;
+  border: 0;
+  background: none;
+  color: var(--paper);
+  font-size: 32px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 8px 12px;
+  opacity: .7;
+}
+
+.lightbox-close:hover { opacity: 1; }
+
+.noscript {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+  z-index: 99;
+  font-size: 14px;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 1024px) {
+  .stage { padding-inline: 56px; }
+  .stage--left .stage-inner, #arrival .stage-inner, #contact .stage-inner,
+  #studio .stage-inner, #concept .stage-inner, #booths .stage-inner,
+  #demos .stage-inner, #robotics .stage-inner, #motion .stage-inner { max-width: 78vw; }
+}
+
+/* Past roughly 1600px the copy would otherwise cling to the left edge with a
+   dead band between it and the cluster. Pull it inward as the viewport grows. */
+@media (min-width: 1600px) {
+  .stage { padding-inline: 9vw; }
+  #arrival .stage-inner, #contact .stage-inner,
+  #studio .stage-inner, #concept .stage-inner, #booths .stage-inner,
+  #demos .stage-inner, #robotics .stage-inner, #motion .stage-inner { max-width: min(46vw, 820px); }
+}
+
+@media (max-width: 720px) {
+  /* The cluster competes with the copy at this width — hold it back. */
+  #gl { opacity: .45; }
+  .stage-inner::before { inset: -6% -8%; }
+  .nav { padding-inline: 20px; }
+  .nav-where { display: none; }
+  .rail { right: 14px; gap: 12px; }
+  .rail .label { display: none; }
+  .scroll-hint { display: none; }
+  .stage { padding: calc(var(--nav-h) + 24px) 22px calc(40px + var(--safe-bottom)); align-items: flex-start; overflow-y: auto; }
+  .stage-inner, .stage--left .stage-inner,
+  #booths .stage-inner, #robotics .stage-inner,
+  #motion .stage-inner, #concept .stage-inner { max-width: 100%; }
+  /* Two up on phones, and demo cards go full width so their copy stays
+     readable. Same single grid underneath as everywhere else. */
+  .strip--concept, .grid--booths, .grid--robotics, .panels {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .demos { grid-template-columns: 1fr; }
+  .demo-btn { min-width: 0; width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    transition-duration: .001ms !important;
+  }
+}
